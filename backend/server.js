@@ -18,6 +18,9 @@ const io = new Server(server, {
 // Store io on app
 app.set('io', io);
 
+// Trust proxy (behind nginx)
+app.set('trust proxy', 1);
+
 // Middleware
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(cors());
