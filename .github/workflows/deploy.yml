@@ -1,0 +1,42 @@
+name: Deploy Darwa Ride
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H 31.97.196.31 >> ~/.ssh/known_hosts 2>/dev/null
+
+          ssh -o StrictHostKeyChecking=no root@31.97.196.31 << 'ENDSSH'
+            cd /var/www/darwa-ride
+            git fetch origin main
+            git reset --hard origin/main
+            npm ci --omit=dev --prefix backend
+            pm2 restart darwa-ride || pm2 start ecosystem.config.js
+
+            # Sync nginx config
+            cp nginx.conf /etc/nginx/sites-available/darwa-ride
+            nginx -t && systemctl reload nginx
+          ENDSSH
+
+      - name: Health Check
+        run: |
+          sleep 3
+          for i in 1 2 3; do
+            if curl -sf --max-time 10 https://toktokina.com/api/health; then
+              echo "Health check passed"
+              exit 0
+            fi
+            echo "Attempt $i failed, retrying..."
+            sleep 5
+          done
+          echo "Warning: Health check failed after 3 attempts"
