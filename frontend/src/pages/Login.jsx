@@ -28,7 +28,7 @@ export default function Login() {
             <div className="auth-card">
                 <div className="auth-logo">
                     <div className="logo-icon">🛺</div>
-                    <h1>دروة رايد</h1>
+                    <h1>توكتوكينا</h1>
                     <p>توكتوك في ثواني</p>
                 </div>
                 <form onSubmit={handleSubmit}>

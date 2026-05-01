@@ -142,7 +142,7 @@ export default function PassengerHome() {
         <div className="app-container">
             {/* Header */}
             <header className="app-header">
-                <h2>🛺 دروة رايد</h2>
+                <h2>🛺 توكتوكينا</h2>
                 <div className="header-actions">
                     <Link to="/passenger/history" className="btn btn-sm">رحلاتي</Link>
                     <button className="btn btn-sm btn-outline" onClick={logout}>خروج</button>

@@ -9,8 +9,8 @@ export default defineConfig({
             registerType: 'autoUpdate',
             includeAssets: ['favicon.ico', 'logo-192.png', 'logo-512.png'],
             manifest: {
-                name: 'دروة رايد - توكتوك',
-                short_name: 'دروة رايد',
+                name: 'توكتوكينا - اطلب توكتوك',
+                short_name: 'توكتوكينا',
                 description: 'اطلب توكتوك في ثواني',
                 theme_color: '#10b981',
                 background_color: '#ffffff',
