@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="80" fill="#10b981"/>
+  <g transform="translate(256,280)" text-anchor="middle">
+    <text font-size="200" y="-40" fill="white">🛺</text>
+    <text font-family="Arial,sans-serif" font-size="72" font-weight="bold" y="80" fill="white">توكتوكينا</text>
+  </g>
+</svg>
