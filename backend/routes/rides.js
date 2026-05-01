@@ -1,7 +1,7 @@
 const express = require('express');
 const db = require('../config/db');
 const { auth, requireRole } = require('../middleware/auth');
-const { calculateFare, generateRideCode } = require('../services/pricing');
+const { calculateFare, generateRideCode, findNearbyDrivers, calculateSurge } = require('../services/pricing');
 const router = express.Router();
 
 // ========== REQUEST RIDE ==========
@@ -40,17 +40,26 @@ router.post('/request', auth, requireRole('passenger'), async (req, res) => {
             status: 'searching'
         };
 
-        // Notify nearby drivers via socket
+        // Find nearby drivers and notify only them
+        const nearbyDrivers = await findNearbyDrivers(pickup_lat, pickup_lng, 5, vehicle_type || null);
         const io = req.app.get('io');
-        if (io) {
-            io.to('drivers_online').emit('new_ride_request', {
+        const userSockets = req.app.get('userSockets') || {};
+        if (io && nearbyDrivers.length) {
+            const rideData = {
                 ride_id: result.insertId,
                 ride_code: rideCode,
                 pickup: { lat: pickup_lat, lng: pickup_lng, address: pickup_address },
                 dropoff: { lat: dropoff_lat, lng: dropoff_lng, address: dropoff_address },
                 fare: fare.total_fare,
+                distance_km: fare.distance_km,
                 payment_method: payment_method || 'cash'
-            });
+            };
+            for (const driver of nearbyDrivers) {
+                const socketId = userSockets[driver.user_id];
+                if (socketId) {
+                    io.to(socketId).emit('new_ride_request', { ...rideData, distance_to_pickup: driver.distance_km });
+                }
+            }
         }
 
         // Auto-cancel after 2 minutes if no driver accepts

@@ -124,4 +124,39 @@ router.get('/revenue', async (req, res) => {
     }
 });
 
+// ========== WITHDRAWALS ==========
+router.get('/withdrawals', async (req, res) => {
+    try {
+        const { status = 'pending' } = req.query;
+        const [rows] = await db.query(
+            `SELECT w.*, u.name, u.phone, dp.wallet_balance FROM withdrawal_requests w
+             JOIN users u ON u.id = w.driver_id JOIN driver_profiles dp ON dp.user_id = w.driver_id
+             WHERE w.status = ? ORDER BY w.created_at DESC`, [status]
+        );
+        res.json(rows);
+    } catch (err) {
+        res.status(500).json({ error: 'حصل مشكلة' });
+    }
+});
+
+router.post('/withdrawals/:id/process', async (req, res) => {
+    try {
+        const { action, note } = req.body; // action: approved, rejected
+        const [wr] = await db.query("SELECT * FROM withdrawal_requests WHERE id = ? AND status = 'pending'", [req.params.id]);
+        if (!wr.length) return res.status(404).json({ error: 'الطلب مش موجود' });
+
+        if (action === 'approved') {
+            await db.query('UPDATE driver_profiles SET wallet_balance = wallet_balance - ? WHERE user_id = ?', [wr[0].amount, wr[0].driver_id]);
+            await db.query('INSERT INTO transactions (user_id, type, amount, balance_after, payment_method, notes) VALUES (?, "withdrawal", ?, (SELECT wallet_balance FROM driver_profiles WHERE user_id = ?), ?, ?)',
+                [wr[0].driver_id, -wr[0].amount, wr[0].driver_id, wr[0].method, 'سحب أرباح']);
+        }
+
+        await db.query("UPDATE withdrawal_requests SET status = ?, admin_note = ?, processed_at = NOW() WHERE id = ?",
+            [action, note || '', req.params.id]);
+        res.json({ message: action === 'approved' ? 'تم الموافقة' : 'تم الرفض' });
+    } catch (err) {
+        res.status(500).json({ error: 'حصل مشكلة' });
+    }
+});
+
 module.exports = router;

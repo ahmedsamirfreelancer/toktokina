@@ -101,4 +101,35 @@ router.get('/transactions', auth, requireRole('driver'), async (req, res) => {
     }
 });
 
+// ========== REQUEST WITHDRAWAL ==========
+router.post('/withdraw', auth, requireRole('driver'), async (req, res) => {
+    try {
+        const { amount, method, account_number } = req.body;
+        if (!amount || !method || !account_number) return res.status(400).json({ error: 'كل البيانات مطلوبة' });
+
+        const [profile] = await db.query('SELECT wallet_balance FROM driver_profiles WHERE user_id = ?', [req.user.id]);
+        if (!profile.length || profile[0].wallet_balance < amount) return res.status(400).json({ error: 'الرصيد مش كفاية' });
+
+        const [pending] = await db.query("SELECT id FROM withdrawal_requests WHERE driver_id = ? AND status = 'pending'", [req.user.id]);
+        if (pending.length) return res.status(400).json({ error: 'عندك طلب سحب لسه ما اتنفذش' });
+
+        await db.query('INSERT INTO withdrawal_requests (driver_id, amount, method, account_number) VALUES (?, ?, ?, ?)',
+            [req.user.id, amount, method, account_number]);
+
+        res.status(201).json({ message: 'تم تقديم طلب السحب، هيتراجع خلال 24 ساعة' });
+    } catch (err) {
+        res.status(500).json({ error: 'حصل مشكلة' });
+    }
+});
+
+// ========== MY WITHDRAWALS ==========
+router.get('/withdrawals', auth, requireRole('driver'), async (req, res) => {
+    try {
+        const [rows] = await db.query('SELECT * FROM withdrawal_requests WHERE driver_id = ? ORDER BY created_at DESC', [req.user.id]);
+        res.json(rows);
+    } catch (err) {
+        res.status(500).json({ error: 'حصل مشكلة' });
+    }
+});
+
 module.exports = router;
