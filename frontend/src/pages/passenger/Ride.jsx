@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../utils/api';
 import { getSocket } from '../../utils/socket';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 
 const STATUS_LABELS = {
     searching: '🔍 جاري البحث عن سائق...',
@@ -46,27 +48,27 @@ export default function PassengerRide() {
 
     useEffect(() => {
         if (!ride || !mapRef.current || mapInstance.current) return;
-        const map = window.L.map(mapRef.current).setView([ride.pickup_lat, ride.pickup_lng], 15);
-        window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        const map = L.map(mapRef.current).setView([ride.pickup_lat, ride.pickup_lng], 15);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
         mapInstance.current = map;
 
         // Pickup marker
-        window.L.marker([ride.pickup_lat, ride.pickup_lng], {
-            icon: window.L.divIcon({ className: '', html: '<div class="marker-dot pickup-dot"></div>', iconSize: [20, 20], iconAnchor: [10, 10] })
+        L.marker([ride.pickup_lat, ride.pickup_lng], {
+            icon: L.divIcon({ className: '', html: '<div class="marker-dot pickup-dot"></div>', iconSize: [20, 20], iconAnchor: [10, 10] })
         }).addTo(map);
 
         // Dropoff marker
-        window.L.marker([ride.dropoff_lat, ride.dropoff_lng], {
-            icon: window.L.divIcon({ className: '', html: '<div class="marker-dot dropoff-dot"></div>', iconSize: [20, 20], iconAnchor: [10, 10] })
+        L.marker([ride.dropoff_lat, ride.dropoff_lng], {
+            icon: L.divIcon({ className: '', html: '<div class="marker-dot dropoff-dot"></div>', iconSize: [20, 20], iconAnchor: [10, 10] })
         }).addTo(map);
 
         // Route line
-        window.L.polyline([[ride.pickup_lat, ride.pickup_lng], [ride.dropoff_lat, ride.dropoff_lng]], { color: '#10b981', weight: 3, dashArray: '10 5' }).addTo(map);
+        L.polyline([[ride.pickup_lat, ride.pickup_lng], [ride.dropoff_lat, ride.dropoff_lng]], { color: '#10b981', weight: 3, dashArray: '10 5' }).addTo(map);
 
         // Driver marker
         if (ride.driver_lat && ride.driver_lng) {
-            driverMarker.current = window.L.marker([ride.driver_lat, ride.driver_lng], {
-                icon: window.L.divIcon({ className: '', html: '<div class="driver-marker">🛺</div>', iconSize: [30, 30], iconAnchor: [15, 15] })
+            driverMarker.current = L.marker([ride.driver_lat, ride.driver_lng], {
+                icon: L.divIcon({ className: '', html: '<div class="driver-marker">🛺</div>', iconSize: [30, 30], iconAnchor: [15, 15] })
             }).addTo(map);
         }
 

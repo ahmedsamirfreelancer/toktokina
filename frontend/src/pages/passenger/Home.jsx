@@ -3,6 +3,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../utils/api';
 import { getSocket } from '../../utils/socket';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 
 export default function PassengerHome() {
     const { user, logout } = useAuth();
@@ -38,8 +40,8 @@ export default function PassengerHome() {
         if (mapInstance.current || !window.L) return;
 
         // Default: Egypt center
-        mapInstance.current = window.L.map(mapRef.current).setView([30.5, 31.2], 14);
-        window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        mapInstance.current = L.map(mapRef.current).setView([30.5, 31.2], 14);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap'
         }).addTo(mapInstance.current);
 
@@ -70,8 +72,8 @@ export default function PassengerHome() {
 
     function setPickupLocation(lat, lng) {
         if (pickupMarker.current) mapInstance.current.removeLayer(pickupMarker.current);
-        pickupMarker.current = window.L.marker([lat, lng], {
-            icon: window.L.divIcon({ className: 'marker-pickup', html: '<div class="marker-dot pickup-dot"></div>', iconSize: [20, 20], iconAnchor: [10, 10] })
+        pickupMarker.current = L.marker([lat, lng], {
+            icon: L.divIcon({ className: 'marker-pickup', html: '<div class="marker-dot pickup-dot"></div>', iconSize: [20, 20], iconAnchor: [10, 10] })
         }).addTo(mapInstance.current);
         setPickup({ lat, lng });
         reverseGeocode(lat, lng, setPickupAddress);
@@ -80,8 +82,8 @@ export default function PassengerHome() {
 
     function setDropoffLocation(lat, lng) {
         if (dropoffMarker.current) mapInstance.current.removeLayer(dropoffMarker.current);
-        dropoffMarker.current = window.L.marker([lat, lng], {
-            icon: window.L.divIcon({ className: 'marker-dropoff', html: '<div class="marker-dot dropoff-dot"></div>', iconSize: [20, 20], iconAnchor: [10, 10] })
+        dropoffMarker.current = L.marker([lat, lng], {
+            icon: L.divIcon({ className: 'marker-dropoff', html: '<div class="marker-dot dropoff-dot"></div>', iconSize: [20, 20], iconAnchor: [10, 10] })
         }).addTo(mapInstance.current);
         setDropoff({ lat, lng });
         reverseGeocode(lat, lng, setDropoffAddress);
@@ -90,7 +92,7 @@ export default function PassengerHome() {
         // Draw line
         if (pickupMarker.current) {
             const p = pickupMarker.current.getLatLng();
-            window.L.polyline([[p.lat, p.lng], [lat, lng]], { color: '#10b981', weight: 3, dashArray: '10 5' }).addTo(mapInstance.current);
+            L.polyline([[p.lat, p.lng], [lat, lng]], { color: '#10b981', weight: 3, dashArray: '10 5' }).addTo(mapInstance.current);
         }
     }
 
@@ -135,7 +137,7 @@ export default function PassengerHome() {
         setPickup(null); setDropoff(null); setEstimate(null);
         setPickupAddress(''); setDropoffAddress('');
         // Remove polylines
-        mapInstance.current.eachLayer(l => { if (l instanceof window.L.Polyline && !(l instanceof window.L.TileLayer)) mapInstance.current.removeLayer(l); });
+        mapInstance.current.eachLayer(l => { if (l instanceof L.Polyline && !(l instanceof L.TileLayer)) mapInstance.current.removeLayer(l); });
     };
 
     return (

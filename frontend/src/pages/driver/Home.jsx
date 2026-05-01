@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../utils/api';
 import { getSocket } from '../../utils/socket';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 
 export default function DriverHome() {
     const { user, logout } = useAuth();
@@ -24,8 +26,8 @@ export default function DriverHome() {
     // Init map
     useEffect(() => {
         if (mapInstance.current || !mapRef.current || !window.L) return;
-        mapInstance.current = window.L.map(mapRef.current).setView([30.5, 31.2], 14);
-        window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapInstance.current);
+        mapInstance.current = L.map(mapRef.current).setView([30.5, 31.2], 14);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapInstance.current);
 
         navigator.geolocation.getCurrentPosition(pos => {
             const { latitude, longitude } = pos.coords;
